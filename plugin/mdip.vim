@@ -1,3 +1,50 @@
+""Preprocess the image dir.
+function! s:mdip_preprocess_pathes()
+    if exists('g:mdip_pathes_intialized')
+        return
+    else
+        let g:mdip_pathes_intialized = 1
+    endif
+    if exists('g:mdip_imgdir_absolute')
+        let g:mdip_imgdir_absolute = expand(g:mdip_imgdir_absolute)
+        let g:mdip_imgdir = g:mdip_imgdir_absolute
+    elseif exists('g:mdip_imgdir')
+        let g:mdip_imgdir = expand(g:mdip_imgdir)
+        if exists('g:mdip_imgdir_postfix')
+            let g:mdip_imgdir = g:mdip_imgdir.g:mdip_imgdir_postfix
+        endif
+        if exists('g:mdip_imgdir_prefix')
+            let g:mdip_imgdir = g:mdip_imgdir_prefix.g:mdip_imgdir
+        endif
+    else
+        let g:mdip_imgdir = 'img'
+    endif
+    "allow a different intext reference for relative links
+    if !exists('g:mdip_imgdir_intext')
+        let g:mdip_imgdir_intext = g:mdip_imgdir
+    endif
+endfunction
+
+au FileType markdown call s:mdip_preprocess_pathes()
+
+" if !exists('g:mdip_imgdir') && !exists('g:mdip_imgdir_absolute')
+"     let g:mdip_imgdir = 'img'
+" endif
+" "allow absolute paths. E.g., on linux: /home/path/to/imgdir/
+" if exists('g:mdip_imgdir_absolute')
+"     let g:mdip_imgdir = g:mdip_imgdir_absolute
+" endif
+" "allow a different intext reference for relative links
+" if !exists('g:mdip_imgdir_intext')
+"     let g:mdip_imgdir_intext = g:mdip_imgdir
+" endif
+if !exists('g:mdip_tmpname')
+    let g:mdip_tmpname = 'tmp'
+endif
+if !exists('g:mdip_imgname')
+    let g:mdip_imgname = 'image'
+endif
+
 " https://stackoverflow.com/questions/57014805/check-if-using-windows-console-in-vim-while-in-windows-subsystem-for-linux
 function! s:IsWSL()
     if has("unix")
@@ -11,13 +58,13 @@ endfunction
 
 function! s:SafeMakeDir()
     if !exists('g:mdip_imgdir_absolute')
-        if s:os == "Windows"  
+        if s:os == "Windows"
             let outdir = expand('%:p:h') . '\' . g:mdip_imgdir
-    else
+        else
             let outdir = expand('%:p:h') . '/' . g:mdip_imgdir
         endif
-    else 
-	let outdir = g:mdip_imgdir
+    else
+        let outdir = g:mdip_imgdir_absolute
     endif
     if !isdirectory(outdir)
         call mkdir(outdir)
@@ -27,6 +74,7 @@ function! s:SafeMakeDir()
     else
         return fnameescape(outdir)
     endif
+    echomsg g:mdip_imgdir
 endfunction
 
 function! s:SaveFileTMPWSL(imgdir, tmpname) abort
@@ -183,21 +231,3 @@ function! mdip#MarkdownClipboardImage()
         execute "normal! ve\<C-g>"
     endif
 endfunction
-
-if !exists('g:mdip_imgdir') && !exists('g:mdip_imgdir_absolute')
-    let g:mdip_imgdir = 'img'
-endif
-"allow absolute paths. E.g., on linux: /home/path/to/imgdir/
-if exists('g:mdip_imgdir_absolute')
-    let g:mdip_imgdir = g:mdip_imgdir_absolute
-endif
-"allow a different intext reference for relative links
-if !exists('g:mdip_imgdir_intext')
-    let g:mdip_imgdir_intext = g:mdip_imgdir
-endif
-if !exists('g:mdip_tmpname')
-    let g:mdip_tmpname = 'tmp'
-endif
-if !exists('g:mdip_imgname')
-    let g:mdip_imgname = 'image'
-endif
